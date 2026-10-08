@@ -12,4 +12,17 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest --cov=app --cov-report=term-missing
-      - run: docker build -t document-qa .
+      - name: Build and start restricted Docker containers
+        run: |
+          touch .env.local
+          docker compose -p document-qa-smoke -f compose.yaml -f compose.smoke.yaml build app
+          docker compose -p document-qa-smoke -f compose.yaml -f compose.smoke.yaml up --no-build --wait --wait-timeout 120
+      - name: Test Docker runtime
+        run: |
+          docker compose -p document-qa-smoke -f compose.yaml -f compose.smoke.yaml exec -T app id
+          uv run python -m scripts.docker_smoke
+      - name: Container diagnostics and cleanup
+        if: always()
+        run: |
+          docker compose -p document-qa-smoke -f compose.yaml -f compose.smoke.yaml logs --no-color
+          docker compose -p document-qa-smoke -f compose.yaml -f compose.smoke.yaml down --volumes

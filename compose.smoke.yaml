@@ -1,0 +1,20 @@
+# CI-only override. Never use these mock AI settings for real questionnaire answers.
+services:
+  app:
+    image: document-qa:smoke
+    environment:
+      OPENAI_API_KEY: docker-smoke-only
+      OPENAI_BASE_URL: http://mock:9000/v1
+      APP_API_TOKEN: ""
+    depends_on:
+      - mock
+  mock:
+    image: document-qa:smoke
+    command: ["/app/.venv/bin/python", "/mock.py"]
+    volumes:
+      - ./scripts/docker_mock_provider.py:/mock.py:ro
+    healthcheck:
+      disable: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
