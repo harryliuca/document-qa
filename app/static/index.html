@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Document QA · Evidence first</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">D<span>Q</span> <b>Document QA</b></a
+      ><span class="tag">Evidence first</span>
+    </header>
+    <main>
+      <section class="intro">
+        <div class="eyebrow">DOCUMENT INTELLIGENCE</div>
+        <h1>Ask your document.<br /><em>See the evidence.</em></h1>
+        <p>
+          Upload a source and your questions. Get grounded answers with quotes
+          you can check, and a clear “not found” when the source is silent.
+        </p>
+      </section>
+      <div class="workspace">
+        <section class="panel">
+          <div class="section-title">
+            <span class="step">01</span>
+            <h2>Build your request</h2>
+          </div>
+          <form id="qa-form">
+            <label for="document"
+              >Source document <span>PDF or JSON · up to 10 MB</span></label
+            >
+            <input
+              id="document"
+              name="document"
+              type="file"
+              accept=".pdf,.json"
+              required
+            />
+            <label for="questions"
+              >Questions file <span>JSON · 1–20 questions</span></label
+            >
+            <input
+              id="questions"
+              name="questions"
+              type="file"
+              accept=".json"
+              required
+            />
+            <details>
+              <summary>Question file format</summary>
+              <pre>
+["Which cloud provider is used?",
+ "What is the incident notification SLA?"]</pre
+              >
+              <p>
+                PDFs must contain selectable text and at most 100 pages. JSON
+                source records keep their field names and locations.
+              </p>
+            </details>
+            <details>
+              <summary>Access token (if enabled)</summary>
+              <label for="token">Server access token</label
+              ><input
+                id="token"
+                type="password"
+                autocomplete="off"
+                placeholder="Optional"
+              />
+            </details>
+            <p class="privacy">
+              Extracted source text and questions are sent to OpenAI to answer
+              your request. Uploads are not saved by this app.
+            </p>
+            <button id="submit" type="submit">
+              Find answers <span aria-hidden="true">↗</span>
+            </button>
+            <p id="progress" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+        <section class="panel results-panel">
+          <div class="section-title">
+            <span class="step">02</span>
+            <h2>Answers & evidence</h2>
+            <a id="download" class="small" download="answers.json" hidden
+              >Save JSON ↓</a
+            >
+          </div>
+          <div id="summary" class="summary" hidden></div>
+          <div id="error" role="alert" hidden></div>
+          <div id="results">
+            <div class="empty">
+              <span class="document-icon" aria-hidden="true">≡</span>
+              <h3>A source for every answer.</h3>
+              <p>
+                Your results will appear here with source locations and
+                supporting quotes.
+              </p>
+            </div>
+          </div>
+          <details id="raw-result" hidden>
+            <summary>View raw JSON</summary>
+            <pre id="raw-json"></pre>
+          </details>
+        </section>
+      </div>
+      <footer>
+        Built for careful answers. Verify cited evidence before making
+        decisions.
+      </footer>
+    </main>
+  </body>
+</html>

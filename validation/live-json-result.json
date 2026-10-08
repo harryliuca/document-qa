@@ -1,0 +1,59 @@
+{
+  "request_id": "d4e508124b6343c889b9b8548c7347f2",
+  "results": [
+    {
+      "question": "Which cloud provider and primary region host the service?",
+      "status": "answered",
+      "answer": "The service is hosted on Amazon Web Services (AWS) in the us-west-2 region (Oregon).",
+      "citations": [
+        {
+          "chunk_id": "c0002",
+          "location": "JSON pointer /hosting",
+          "quote": "The production service runs on Amazon Web Services (AWS) in us-west-2 (Oregon)."
+        }
+      ],
+      "error_code": null
+    },
+    {
+      "question": "What is the customer notification SLA for confirmed security incidents?",
+      "status": "answered",
+      "answer": "Customers are notified within 24 hours after confirmation of a security incident affecting their data.",
+      "citations": [
+        {
+          "chunk_id": "c0003",
+          "location": "JSON pointer /incidents",
+          "quote": "Customers are notified within 24 hours after confirmation of a security incident affecting their data. The incident commander sends an initial email and daily updates until resolution."
+        }
+      ],
+      "error_code": null
+    },
+    {
+      "question": "Where are backups stored and how long are they retained?",
+      "status": "answered",
+      "answer": "Backups are stored in AWS us-east-1 (Northern Virginia) and retained for 30 days.",
+      "citations": [
+        {
+          "chunk_id": "c0004",
+          "location": "JSON pointer /backups",
+          "quote": "Encrypted daily backups are stored in AWS us-east-1 (Northern Virginia) and retained for 30 days."
+        }
+      ],
+      "error_code": null
+    },
+    {
+      "question": "What is the annual revenue?",
+      "status": "not_found",
+      "answer": "Not found in the provided document.",
+      "citations": [],
+      "error_code": null
+    }
+  ],
+  "usage": {
+    "embedding_tokens": 164,
+    "input_tokens": 2110,
+    "output_tokens": 218,
+    "llm_calls": 4
+  },
+  "duration_ms": 1931,
+  "document_chunks": 5
+}

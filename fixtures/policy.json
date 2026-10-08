@@ -1,0 +1,7 @@
+{
+  "company": "Acme Example (fictional demo data)",
+  "hosting": "The production service runs on Amazon Web Services (AWS) in us-west-2 (Oregon).",
+  "incidents": "Customers are notified within 24 hours after confirmation of a security incident affecting their data. The incident commander sends an initial email and daily updates until resolution.",
+  "backups": "Encrypted daily backups are stored in AWS us-east-1 (Northern Virginia) and retained for 30 days. Restore tests are performed quarterly.",
+  "monitoring": "Application performance monitoring and infrastructure alerting run continuously. Customer-facing uptime checks run every minute."
+}
