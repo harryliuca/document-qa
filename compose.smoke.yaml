@@ -14,7 +14,10 @@ services:
     volumes:
       - ./scripts/docker_mock_provider.py:/mock.py:ro
     healthcheck:
-      disable: true
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import socket; socket.create_connection(('127.0.0.1', 9000), 3).close()"]
+      interval: 2s
+      timeout: 4s
+      retries: 10
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
