@@ -1,3 +1,7 @@
+## Full-context development update
+
+See [validation/FULL_CONTEXT.md](validation/FULL_CONTEXT.md) for the 60K-token live comparison and browser PDF verification. The earlier v0.5 evidence below is retained as historical validation.
+
 # Validation record
 
 Verified locally on October 8, 2026 with Python 3.12.12. This is implementation evidence, not an assigned rubric score.

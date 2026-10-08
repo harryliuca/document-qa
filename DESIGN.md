@@ -27,9 +27,9 @@ The rubric's performance sentence ends after “and”; no unprovided criterion 
 
 **Preserve answer order and duplicates.** A result array can represent repeated questions; a question-keyed JSON object cannot. Duplicate work is coalesced internally, preserving all user-visible entries.
 
-**Validate citations without claiming they prove truth.** Source-quote membership rejects nonexistent evidence. It does not prove that the quote entails the answer, that all relevant context was retrieved, or that an injected document cannot sway the model. The UI exposes evidence for inspection. A second model judge would add spend and uncertainty; it is not treated as an automatic correctness oracle.
+**Validate citations without claiming they prove truth.** Source-quote membership rejects nonexistent evidence. It does not prove that the quote entails the answer, that all relevant context was retrieved, or that an injected document cannot sway the model. The UI exposes evidence for inspection. The optional full-context strategy adds a separate model judge and targeted retry; it remains fallible and is not treated as a correctness oracle.
 
-**Spend deliberately.** A request has one batched embedding call and at most one generation call per distinct question. Limits bound input and output, no implicit retry loops run, and usage is visible. There is no claim that local token limits enforce the shared $5 account budget.
+**Spend deliberately.** A retrieval request has one batched embedding call and at most one generation call per distinct question. Full-context requests have one generation per batch, one review per answered batch, and at most one individual generation/review retry per unresolved question. Limits bound input and output, no unbounded retry loops run, and usage is visible. There is no claim that local token limits enforce the shared $5 account budget.
 
 ## Module map
 
@@ -48,3 +48,13 @@ The rubric's performance sentence ends after “and”; no unprovided criterion 
 - [GPT-4o mini](https://developers.openai.com/api/docs/models/gpt-4o-mini): requested answer model.
 - [LangChain text splitters](https://reference.langchain.com/python/langchain-text-splitters): source-aware chunking.
 - [AnyIO worker processes](https://anyio.readthedocs.io/en/stable/subprocesses.html): cancellation terminates parser workers.
+
+## Full-context alternative
+
+`full_context_provider.py` constructs the stable source prefix and Structured Outputs schemas. `batching.py` plans topic-adjacent groups, checks result IDs and quote provenance, reviews semantic support, and runs one individual retry. Both strategies share the same provider semaphore. The model remains GPT-4o-mini.
+
+Cache reuse reduces input processing cost only when the provider reports a hit. It does not remove document tokens from context-window accounting, establish a warm cache before concurrent requests, or eliminate answer-generation and verification latency. The trusted instructions, document serialization, and schema are identical across groups and retries; changing questions and retry hints come last.
+
+The extra review call is deliberate: a real source quote can still support the opposite of a generated answer. Review uses entire cited chunks and location context, but does not rescan uncited document sections. False abstentions are possible because valid `not_found` answers are accepted without a second search. Topic grouping is deterministic keyword sorting, not a learned classifier; short groups are coalesced to avoid wasted singleton calls.
+
+The 60K-token synthetic comparison passed all ten expected-answer checks in both modes. It did not establish superior accuracy, latency, or cost for full context, so retrieval remains the default. Representative labeled SOC 2 reports, repeated isolated cold/warm trials, and load tests are still needed before changing that default.

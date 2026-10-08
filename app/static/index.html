@@ -39,7 +39,8 @@
               required
             />
             <label for="questions"
-              >Questions file <span>JSON · 1–20 questions</span></label
+              >Questions file
+              <span id="question-limit">JSON · 1–20 questions</span></label
             >
             <input
               id="questions"
@@ -48,6 +49,27 @@
               accept=".json"
               required
             />
+            <label for="strategy">Answer strategy</label>
+            <select id="strategy">
+              <option value="retrieval">Retrieve relevant passages</option>
+              <option value="full_context_batch">
+                Full document · topic batches
+              </option>
+            </select>
+            <div id="batch-options" hidden>
+              <label for="cache-mode">Batch scheduling</label>
+              <select id="cache-mode">
+                <option value="parallel">Run batches in parallel</option>
+                <option value="warm_first">
+                  Complete first batch, then parallel
+                </option>
+              </select>
+              <p>
+                Five questions per batch, with evidence review and one focused
+                retry. Unresolved answers are marked “needs review.” Cache
+                savings depend on actual hits.
+              </p>
+            </div>
             <details>
               <summary>Question file format</summary>
               <pre>

@@ -1,0 +1,481 @@
+{
+  "fixture": "Synthetic JSON controls with irrelevant audit hashes; not a SOC 2 quality benchmark",
+  "source_tokens": 60009,
+  "source_chunks": 95,
+  "runs": [
+    {
+      "strategy": "retrieval",
+      "cache_mode": null,
+      "duration_seconds": 6.15,
+      "heuristic_checks_passed": 10,
+      "total": 10,
+      "estimated_usd": 0.004205,
+      "usage": {
+        "embedding_tokens": 57710,
+        "input_tokens": 18636,
+        "output_tokens": 426,
+        "llm_calls": 10,
+        "cached_input_tokens": 0,
+        "verification_calls": 0,
+        "retried_questions": 0,
+        "usage_complete": true
+      },
+      "results": [
+        {
+          "question": "Is MFA required for administrator access?",
+          "status": "answered",
+          "answer": "Yes, MFA is required for all administrator access.",
+          "citations": [
+            {
+              "chunk_id": "c0001",
+              "location": "JSON pointer /identity/controls/0",
+              "quote": "\"MFA is required for all administrator access.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "How often are access reviews performed?",
+          "status": "answered",
+          "answer": "Access reviews are performed quarterly.",
+          "citations": [
+            {
+              "chunk_id": "c0002",
+              "location": "JSON pointer /identity/controls/1",
+              "quote": "Access reviews are performed quarterly."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "Are contractors permitted production access?",
+          "status": "answered",
+          "answer": "Contractors are not permitted production access.",
+          "citations": [
+            {
+              "chunk_id": "c0003",
+              "location": "JSON pointer /identity/controls/2",
+              "quote": "Contractors are not permitted production access."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "Which encryption protects stored backups?",
+          "status": "answered",
+          "answer": "Stored backups are protected using AES-256 encryption.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "/encryption: \"Stored backups use AES-256 encryption. TLS 1.2 is the minimum transport version.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "What is the minimum TLS version?",
+          "status": "answered",
+          "answer": "The minimum TLS version is 1.2.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "TLS 1.2 is the minimum transport version."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "How long are backups retained?",
+          "status": "answered",
+          "answer": "Backups are retained for 30 days.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "Backups are retained for 30 days. Recovery time objective is 4 hours; recovery point objective is 1 hour."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "What are the recovery time and recovery point objectives?",
+          "status": "answered",
+          "answer": "The recovery time objective is 4 hours, and the recovery point objective is 1 hour.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "Recovery time objective is 4 hours; recovery point objective is 1 hour."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "Which cloud hosts production and which regions host primary and backup data?",
+          "status": "answered",
+          "answer": "Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.",
+          "citations": [
+            {
+              "chunk_id": "c0095",
+              "location": "JSON pointer /hosting",
+              "quote": "/hosting: \"Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "quote_checked"
+        },
+        {
+          "question": "What was annual revenue in 2025?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        },
+        {
+          "question": "Which cyber insurance provider is contracted?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        }
+      ]
+    },
+    {
+      "strategy": "full_context_batch",
+      "cache_mode": "parallel",
+      "duration_seconds": 6.88,
+      "heuristic_checks_passed": 10,
+      "total": 10,
+      "estimated_usd": 0.017881,
+      "usage": {
+        "embedding_tokens": 0,
+        "input_tokens": 120776,
+        "output_tokens": 615,
+        "llm_calls": 4,
+        "cached_input_tokens": 8064,
+        "verification_calls": 2,
+        "retried_questions": 0,
+        "usage_complete": true
+      },
+      "results": [
+        {
+          "question": "Is MFA required for administrator access?",
+          "status": "answered",
+          "answer": "Yes, MFA is required for all administrator access.",
+          "citations": [
+            {
+              "chunk_id": "c0001",
+              "location": "JSON pointer /identity/controls/0",
+              "quote": "\"MFA is required for all administrator access.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "How often are access reviews performed?",
+          "status": "answered",
+          "answer": "Access reviews are performed quarterly.",
+          "citations": [
+            {
+              "chunk_id": "c0002",
+              "location": "JSON pointer /identity/controls/1",
+              "quote": "\"Access reviews are performed quarterly.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Are contractors permitted production access?",
+          "status": "answered",
+          "answer": "No, contractors are not permitted production access.",
+          "citations": [
+            {
+              "chunk_id": "c0003",
+              "location": "JSON pointer /identity/controls/2",
+              "quote": "\"Contractors are not permitted production access.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Which encryption protects stored backups?",
+          "status": "answered",
+          "answer": "Stored backups use AES-256 encryption.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "Stored backups use AES-256 encryption."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What is the minimum TLS version?",
+          "status": "answered",
+          "answer": "TLS 1.2 is the minimum transport version.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "TLS 1.2 is the minimum transport version."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "How long are backups retained?",
+          "status": "answered",
+          "answer": "Backups are retained for 30 days.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "/continuity: \"Backups are retained for 30 days. Recovery time objective is 4 hours; recovery point objective is 1 hour.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What are the recovery time and recovery point objectives?",
+          "status": "answered",
+          "answer": "The recovery time objective is 4 hours; the recovery point objective is 1 hour.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "/continuity: \"Backups are retained for 30 days. Recovery time objective is 4 hours; recovery point objective is 1 hour.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Which cloud hosts production and which regions host primary and backup data?",
+          "status": "answered",
+          "answer": "Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.",
+          "citations": [
+            {
+              "chunk_id": "c0095",
+              "location": "JSON pointer /hosting",
+              "quote": "/hosting: \"Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What was annual revenue in 2025?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        },
+        {
+          "question": "Which cyber insurance provider is contracted?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        }
+      ]
+    },
+    {
+      "strategy": "full_context_batch",
+      "cache_mode": "warm_first",
+      "duration_seconds": 7.7,
+      "heuristic_checks_passed": 10,
+      "total": 10,
+      "estimated_usd": 0.009566,
+      "usage": {
+        "embedding_tokens": 0,
+        "input_tokens": 120775,
+        "output_tokens": 614,
+        "llm_calls": 4,
+        "cached_input_tokens": 118912,
+        "verification_calls": 2,
+        "retried_questions": 0,
+        "usage_complete": true
+      },
+      "results": [
+        {
+          "question": "Is MFA required for administrator access?",
+          "status": "answered",
+          "answer": "Yes, MFA is required for all administrator access.",
+          "citations": [
+            {
+              "chunk_id": "c0001",
+              "location": "JSON pointer /identity/controls/0",
+              "quote": "\"MFA is required for all administrator access.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "How often are access reviews performed?",
+          "status": "answered",
+          "answer": "Access reviews are performed quarterly.",
+          "citations": [
+            {
+              "chunk_id": "c0002",
+              "location": "JSON pointer /identity/controls/1",
+              "quote": "\"Access reviews are performed quarterly.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Are contractors permitted production access?",
+          "status": "answered",
+          "answer": "No, contractors are not permitted production access.",
+          "citations": [
+            {
+              "chunk_id": "c0003",
+              "location": "JSON pointer /identity/controls/2",
+              "quote": "\"Contractors are not permitted production access.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Which encryption protects stored backups?",
+          "status": "answered",
+          "answer": "Stored backups use AES-256 encryption.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "Stored backups use AES-256 encryption."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What is the minimum TLS version?",
+          "status": "answered",
+          "answer": "The minimum TLS version is 1.2.",
+          "citations": [
+            {
+              "chunk_id": "c0035",
+              "location": "JSON pointer /encryption",
+              "quote": "TLS 1.2 is the minimum transport version."
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "How long are backups retained?",
+          "status": "answered",
+          "answer": "Backups are retained for 30 days.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "/continuity: \"Backups are retained for 30 days. Recovery time objective is 4 hours; recovery point objective is 1 hour.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What are the recovery time and recovery point objectives?",
+          "status": "answered",
+          "answer": "The recovery time objective is 4 hours; the recovery point objective is 1 hour.",
+          "citations": [
+            {
+              "chunk_id": "c0067",
+              "location": "JSON pointer /continuity",
+              "quote": "/continuity: \"Backups are retained for 30 days. Recovery time objective is 4 hours; recovery point objective is 1 hour.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "Which cloud hosts production and which regions host primary and backup data?",
+          "status": "answered",
+          "answer": "Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.",
+          "citations": [
+            {
+              "chunk_id": "c0095",
+              "location": "JSON pointer /hosting",
+              "quote": "/hosting: \"Production runs on AWS. The primary data region is Oregon and the backup region is Virginia.\""
+            }
+          ],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "model_checked"
+        },
+        {
+          "question": "What was annual revenue in 2025?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        },
+        {
+          "question": "Which cyber insurance provider is contracted?",
+          "status": "not_found",
+          "answer": "Not found in the provided document.",
+          "citations": [],
+          "error_code": null,
+          "attempts": 1,
+          "evidence_check": "not_applicable"
+        }
+      ]
+    }
+  ]
+}

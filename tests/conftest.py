@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 
 from app.config import Settings
 from app.main import create_app
-from app.models import Evidence, ModelAnswer
+from app.models import Evidence, ModelAnswer, Usage
 
 
 class FakeProvider:
@@ -34,7 +34,9 @@ class FakeProvider:
         try:
             await asyncio.sleep(self.delay)
             if "revenue" in question.lower():
-                return ModelAnswer(status="not_found", answer="", evidence=[]), 30, 10
+                return ModelAnswer(status="not_found", answer="", evidence=[]), Usage(
+                    input_tokens=30, output_tokens=10
+                )
             terms = re.findall(r"\w+", question.lower())
             chunk = max(chunks, key=lambda c: sum(t in c.text.lower() for t in terms))
             return (
@@ -43,8 +45,7 @@ class FakeProvider:
                     answer="Supported answer: " + chunk.text,
                     evidence=[Evidence(chunk_id=chunk.id, quote=chunk.text)],
                 ),
-                50,
-                20,
+                Usage(input_tokens=50, output_tokens=20),
             )
         finally:
             self.active -= 1

@@ -6,6 +6,7 @@ import json
 import logging
 import time
 import uuid
+from urllib.parse import parse_qs
 
 from starlette.responses import JSONResponse
 
@@ -96,7 +97,13 @@ class RequestBoundary:
                         return {"type": "http.request", "body": body, "more_body": False}
                     return await receive()
 
-                async with asyncio.timeout(self.settings.request_timeout):
+                query = parse_qs(scope.get("query_string", b"").decode("ascii", errors="replace"))
+                deadline = (
+                    self.settings.full_context_request_timeout
+                    if query.get("strategy", [""])[-1] == "full_context_batch"
+                    else self.settings.request_timeout
+                )
+                async with asyncio.timeout(deadline):
                     await self.app(scope, replay, safe_send)
             else:
                 await self.app(scope, receive, safe_send)

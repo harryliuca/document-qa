@@ -3,11 +3,13 @@
 import io
 import json
 import logging
+import math
 from pathlib import Path
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
+from pypdf.errors import DependencyError
 
 from app.config import Settings
 from app.models import Chunk, ClientFault
@@ -16,6 +18,12 @@ from app.models import Chunk, ClientFault
 def strict_json(raw: bytes):
     def reject_constant(value):
         raise ValueError("Non-finite number")
+
+    def finite_float(value):
+        result = float(value)
+        if not math.isfinite(result):
+            raise ValueError("Non-finite number")
+        return result
 
     def unique_pairs(pairs):
         result = {}
@@ -27,7 +35,10 @@ def strict_json(raw: bytes):
 
     try:
         return json.loads(
-            raw.decode("utf-8-sig"), parse_constant=reject_constant, object_pairs_hook=unique_pairs
+            raw.decode("utf-8-sig"),
+            parse_constant=reject_constant,
+            object_pairs_hook=unique_pairs,
+            parse_float=finite_float,
         )
     except (ValueError, UnicodeError, RecursionError):
         raise ClientFault(
@@ -35,16 +46,15 @@ def strict_json(raw: bytes):
         ) from None
 
 
-def parse_questions(raw: bytes, settings: Settings) -> list[str]:
+def parse_questions(raw: bytes, settings: Settings, limit: int | None = None) -> list[str]:
+    limit = settings.max_questions if limit is None else limit
     if len(raw) > settings.max_questions_bytes:
         raise ClientFault("questions_too_large", "Questions file exceeds 64 KB.", 413)
     value = strict_json(raw)
     if isinstance(value, dict) and set(value) == {"questions"}:
         value = value["questions"]
-    if not isinstance(value, list) or not 1 <= len(value) <= settings.max_questions:
-        raise ClientFault(
-            "invalid_questions", f"Supply a JSON array of 1–{settings.max_questions} questions."
-        )
+    if not isinstance(value, list) or not 1 <= len(value) <= limit:
+        raise ClientFault("invalid_questions", f"Supply a JSON array of 1–{limit} questions.")
     if any(
         not isinstance(q, str) or not q.strip() or len(q) > settings.max_question_chars
         for q in value
@@ -96,7 +106,9 @@ def _pdf_documents(raw: bytes, settings: Settings) -> list[Document]:
     logging.getLogger("pypdf").setLevel(logging.CRITICAL)
     try:
         reader = PdfReader(io.BytesIO(raw))
-        if reader.is_encrypted:
+        # Some PDFs encrypt permissions but allow opening without a password.
+        # is_encrypted stays true even after successful decryption.
+        if reader.is_encrypted and not reader.decrypt(""):
             raise ClientFault("encrypted_pdf", "Please upload a PDF without password protection.")
         if len(reader.pages) > settings.max_pages:
             raise ClientFault("too_many_pages", f"PDF limit is {settings.max_pages} pages.", 413)
@@ -113,8 +125,16 @@ def _pdf_documents(raw: bytes, settings: Settings) -> list[Document]:
         return documents
     except ClientFault:
         raise
+    except DependencyError:
+        raise ClientFault(
+            "pdf_dependency_missing",
+            "The server is missing PDF encryption support. Please contact the administrator.",
+            503,
+        ) from None
     except Exception:
-        raise ClientFault("invalid_pdf", "Could not read this PDF. Try a text-based PDF.") from None
+        raise ClientFault(
+            "invalid_pdf", "Could not read this PDF. Try exporting it again as a PDF."
+        ) from None
 
 
 def _json_documents(raw: bytes, settings: Settings) -> list[Document]:

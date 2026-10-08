@@ -325,3 +325,21 @@ footer {
     padding: 30px 10px;
   }
 }
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5d1;
+  border-radius: 8px;
+  background: white;
+  color: inherit;
+  font: inherit;
+  margin-bottom: 14px;
+}
+.badge.needs_review {
+  background: #fff0cb;
+  color: #79550d;
+}
+#batch-options p {
+  font-size: 13px;
+  line-height: 1.5;
+}

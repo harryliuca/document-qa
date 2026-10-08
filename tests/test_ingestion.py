@@ -106,3 +106,34 @@ def test_type_allowlist():
     with pytest.raises(ClientFault) as error:
         document_kind("script.html")
     assert error.value.status == 415
+
+
+@pytest.mark.parametrize("password", ["", "required-secret"])
+def test_aes_pdf_open_password_handling(password):
+    writer = PdfWriter()
+    writer.append(PdfReader(io.BytesIO(pdf_bytes(pages=2))))
+    writer.encrypt(password, owner_password="owner-secret", algorithm="AES-256")
+    output = io.BytesIO()
+    writer.write(output)
+    if password:
+        with pytest.raises(ClientFault, match="encrypted_pdf"):
+            parse_document(output.getvalue(), "pdf", {})
+    else:
+        chunks = parse_document(output.getvalue(), "pdf", {})
+        assert {c.location for c in chunks} == {"page 1", "page 2"}
+        assert all("AWS" in c.text for c in chunks)
+        with pytest.raises(ClientFault, match="too_many_pages"):
+            parse_document(output.getvalue(), "pdf", {"max_pages": 1})
+
+
+def test_missing_crypto_dependency_is_not_mislabeled_invalid_pdf(monkeypatch):
+    from pypdf.errors import DependencyError
+
+    def fail(*args, **kwargs):
+        raise DependencyError("internal dependency details")
+
+    monkeypatch.setattr("app.ingestion.PdfReader", fail)
+    with pytest.raises(ClientFault) as exc:
+        parse_document(pdf_bytes(), "pdf", {})
+    assert exc.value.code == "pdf_dependency_missing" and exc.value.status == 503
+    assert "internal" not in exc.value.message

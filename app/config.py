@@ -24,3 +24,8 @@ class Settings(BaseSettings):
     answer_timeout: float = Field(default=30, gt=0)
     request_timeout: float = Field(default=120, gt=0)
     upload_timeout: float = Field(default=20, gt=0)
+    max_full_context_questions: int = Field(default=75, ge=1, le=100)
+    full_context_batch_size: int = Field(default=5, ge=1, le=10)
+    full_context_input_tokens: int = Field(default=100_000, ge=1000, le=110_000)
+    full_context_request_timeout: float = Field(default=300, gt=0)
+    full_context_call_timeout: float = Field(default=60, gt=0)

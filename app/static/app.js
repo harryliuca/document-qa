@@ -8,6 +8,13 @@ const download = document.querySelector("#download");
 const rawResult = document.querySelector("#raw-result");
 const rawJson = document.querySelector("#raw-json");
 let downloadUrl;
+const strategy = document.querySelector("#strategy");
+strategy.addEventListener("change", () => {
+  const full = strategy.value === "full_context_batch";
+  document.querySelector("#batch-options").hidden = !full;
+  document.querySelector("#question-limit").textContent =
+    `JSON · 1–${full ? 75 : 20} questions`;
+});
 function element(tag, text, className) {
   const el = document.createElement(tag);
   if (text !== undefined) el.textContent = text;
@@ -33,9 +40,10 @@ form.addEventListener("submit", async (event) => {
     return;
   }
   const started = Date.now();
+  const full = strategy.value === "full_context_batch";
   submit.disabled = true;
   const tick = () => {
-    progress.textContent = `Reading, retrieving, and checking evidence… ${Math.floor((Date.now() - started) / 1000)}s`;
+    progress.textContent = `${full ? "Reading, batching, and reviewing evidence" : "Reading, retrieving, and checking quotes"}… ${Math.floor((Date.now() - started) / 1000)}s`;
   };
   tick();
   const timer = setInterval(tick, 1000);
@@ -44,10 +52,14 @@ form.addEventListener("submit", async (event) => {
     data.append("document", documentFile);
     data.append("questions", questionFile);
     const token = document.querySelector("#token").value.trim();
-    const response = await fetch("/api/answers", {
+    const params = new URLSearchParams({
+      strategy: strategy.value,
+      cache_mode: document.querySelector("#cache-mode").value,
+    });
+    const response = await fetch(`/api/answers?${params}`, {
       method: "POST",
       body: data,
-      signal: AbortSignal.timeout(150000),
+      signal: AbortSignal.timeout(full ? 330000 : 150000),
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     const payload = await response.json();
@@ -67,6 +79,10 @@ form.addEventListener("submit", async (event) => {
       (r) => r.status === "answered",
     ).length;
     summary.textContent = `${answered}/${payload.results.length} answered · ${(payload.duration_ms / 1000).toFixed(1)}s · ${payload.document_chunks} source chunks`;
+    const usage = payload.usage;
+    summary.textContent += ` · ${usage.llm_calls} AI calls · ${usage.cached_input_tokens} cached input tokens · ${usage.retried_questions} questions retried`;
+    if (!usage.usage_complete)
+      summary.textContent += " · token usage incomplete";
     summary.hidden = false;
     for (const [i, answer] of payload.results.entries()) {
       const card = element("article", undefined, "answer");
@@ -79,6 +95,16 @@ form.addEventListener("submit", async (event) => {
       );
       card.append(element("h3", `${i + 1}. ${answer.question}`));
       card.append(element("p", answer.answer));
+      if (answer.status === "answered")
+        card.append(
+          element(
+            "p",
+            answer.evidence_check === "model_checked"
+              ? "Quotes matched and claim support reviewed by AI. Verify the evidence."
+              : "Quotes matched to the source. Verify claim support.",
+            "source",
+          ),
+        );
       if (answer.citations.length) {
         const details = element("details");
         details.append(

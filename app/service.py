@@ -40,7 +40,13 @@ def validate_answer(question: str, result: ModelAnswer, sources: list[Chunk]) ->
                 "ungrounded_answer", "Could not verify supporting evidence. Please retry."
             )
         citations.append(Citation(chunk_id=source.id, location=source.location, quote=quote))
-    return Answer(question=question, status="answered", answer=result.answer, citations=citations)
+    return Answer(
+        question=question,
+        status="answered",
+        answer=result.answer,
+        citations=citations,
+        evidence_check="quote_checked",
+    )
 
 
 def embedding_token_count(texts: list[str]) -> int:
@@ -56,7 +62,7 @@ class QAService:
 
     async def run(self, chunks: list[Chunk], questions: list[str]) -> tuple[list[Answer], Usage]:
         unique = list(dict.fromkeys(questions))
-        texts = [c.text for c in chunks] + unique
+        texts = [f"{c.location}\n{c.text}" for c in chunks] + unique
         tokens = await anyio.to_thread.run_sync(embedding_token_count, texts)
         if tokens > self.settings.max_embedding_tokens:
             raise ClientFault(
@@ -80,19 +86,22 @@ class QAService:
                 async with self.provider_slots:
                     async with asyncio.timeout(self.settings.answer_timeout):
                         usage.llm_calls += 1
-                        result, in_tokens, out_tokens = await self.provider.answer(
-                            question, sources
-                        )
-                        usage.input_tokens += in_tokens
-                        usage.output_tokens += out_tokens
+                        result, delta = await self.provider.answer(question, sources)
+                        usage.input_tokens += delta.input_tokens
+                        usage.output_tokens += delta.output_tokens
+                        usage.cached_input_tokens += delta.cached_input_tokens
+                        usage.usage_complete = usage.usage_complete and delta.usage_complete
                 return validate_answer(question, result, sources)
             except TimeoutError:
+                usage.usage_complete = False
                 fault = ProviderFault("provider_timeout", "This question timed out. Please retry.")
             except LengthFinishReasonError:
+                usage.usage_complete = False
                 fault = ProviderFault(
                     "answer_too_long", "Answer exceeded the output limit. Narrow the question."
                 )
             except ProviderFault as exc:
+                usage.usage_complete = False
                 fault = exc
             return Answer(
                 question=question, status="error", answer=fault.message, error_code=fault.code

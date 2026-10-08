@@ -3,16 +3,20 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 import anyio
 from anyio import to_process
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.datastructures import UploadFile
 from starlette.exceptions import HTTPException
 
+from app.batching import FullContextService
 from app.config import Settings
+from app.full_context_provider import BatchProvider, FullContextProvider
 from app.ingestion import document_kind, parse_document, parse_questions
 from app.middleware import RequestBoundary, log_event
 from app.models import ClientFault, ProviderFault, QAResponse
@@ -22,7 +26,11 @@ from app.service import QAService, embedding_token_count
 STATIC = Path(__file__).parent / "static"
 
 
-def create_app(settings: Settings | None = None, provider: Provider | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    provider: Provider | None = None,
+    batch_provider: BatchProvider | None = None,
+) -> FastAPI:
     config = settings or Settings()
 
     @asynccontextmanager
@@ -38,6 +46,14 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
             )
             active_provider = owned
         app.state.service = QAService(active_provider, config) if active_provider else None
+        full_provider = batch_provider or (
+            FullContextProvider(owned, config.full_context_call_timeout) if owned else None
+        )
+        app.state.full_service = (
+            FullContextService(full_provider, config, app.state.service.provider_slots)
+            if full_provider and app.state.service
+            else None
+        )
         app.state.parser_slots = anyio.CapacityLimiter(config.max_concurrent_requests)
         # Warm tokenizer once; Docker preloads its cache to avoid runtime downloads.
         await anyio.to_thread.run_sync(embedding_token_count, ["warmup"])
@@ -48,7 +64,7 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
                 await owned.close()
 
     app = FastAPI(
-        title="Document QA", version="0.5.0", lifespan=lifespan, docs_url=None, redoc_url=None
+        title="Document QA", version="0.6.0.dev1", lifespan=lifespan, docs_url=None, redoc_url=None
     )
     app.add_middleware(RequestBoundary, settings=config)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
@@ -74,6 +90,19 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
                 "request_id": request.state.request_id,
             },
             status_code=status,
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError):
+        return JSONResponse(
+            {
+                "error": {
+                    "code": "invalid_parameters",
+                    "message": "Use a supported strategy and cache_mode.",
+                },
+                "request_id": request.state.request_id,
+            },
+            status_code=422,
         )
 
     @app.exception_handler(HTTPException)
@@ -115,7 +144,11 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
             },
         },
     )
-    async def answer_questions(request: Request):
+    async def answer_questions(
+        request: Request,
+        strategy: Literal["retrieval", "full_context_batch"] = "retrieval",
+        cache_mode: Literal["parallel", "warm_first"] = "parallel",
+    ):
         started = time.monotonic()
         async with request.form(max_files=2, max_fields=0) as form:
             if sorted(form.keys()) != ["document", "questions"] or len(form.multi_items()) != 2:
@@ -127,7 +160,13 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
                 raise ClientFault("missing_files", "Both fields must be file uploads.")
             kind = document_kind(document.filename or "")
             raw_questions = await questions_file.read(config.max_questions_bytes + 1)
-            questions = parse_questions(raw_questions, config)
+            questions = parse_questions(
+                raw_questions,
+                config,
+                config.max_full_context_questions
+                if strategy == "full_context_batch"
+                else config.max_questions,
+            )
             raw_document = await document.read(config.max_document_bytes + 1)
             if len(raw_document) > config.max_document_bytes:
                 raise ClientFault("document_too_large", "Document exceeds 10 MB.", 413)
@@ -152,7 +191,12 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
         service = app.state.service
         if service is None:
             raise ClientFault("not_configured", "Server requires an OpenAI API key.", 503)
-        results, usage = await service.run(chunks, questions)
+        if strategy == "full_context_batch":
+            if app.state.full_service is None:
+                raise ClientFault("not_configured", "Full-context provider is not configured.", 503)
+            results, usage = await app.state.full_service.run(chunks, questions, cache_mode)
+        else:
+            results, usage = await service.run(chunks, questions)
         duration = round((time.monotonic() - started) * 1000)
         log_event(
             "qa_complete",
@@ -162,6 +206,8 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
             answered=sum(r.status == "answered" for r in results),
             not_found=sum(r.status == "not_found" for r in results),
             errors=sum(r.status == "error" for r in results),
+            needs_review=sum(r.status == "needs_review" for r in results),
+            strategy=strategy,
             duration_ms=duration,
             **usage.model_dump(),
         )
@@ -171,6 +217,8 @@ def create_app(settings: Settings | None = None, provider: Provider | None = Non
             usage=usage,
             duration_ms=duration,
             document_chunks=len(chunks),
+            strategy=strategy,
+            cache_mode=cache_mode if strategy == "full_context_batch" else None,
         )
 
     return app
